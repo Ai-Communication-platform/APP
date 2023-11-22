@@ -5,12 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:record/record.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 
 
 // 비동기 함수로.. => firebase 때문인 듯
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  await FirebaseAppCheck.instance.activate(webProvider: ReCaptchaV3Provider('recaptcha-v3-site-key'),);
   runApp(MyApp());
 }
 
@@ -46,8 +48,9 @@ class _MyHomePageState extends State<MyHomePage> {
   late AudioPlayer audioPlayer;
   bool isRecording = false;
   String audioPath = '';
-  final dateTimeNow = DateTime.now();
+  late DateTime dateTimeNow; // late 키워드 사용
   final formatter = DateFormat('yyyy-MM-dd-HH-mm-ss');
+  String file_path = '';
 
   @override
   void initState() {
@@ -82,6 +85,8 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {
         isRecording = false;
         audioPath = path!;
+        file_path = audioPath;
+        dateTimeNow = DateTime.now(); // 각 녹음마다 날짜와 시간을 갱신
       });
     } catch (e) {
       print('[Error] Stop Recording: $e');
@@ -92,6 +97,7 @@ class _MyHomePageState extends State<MyHomePage> {
     //if (audioPath.isNotEmpty) {
     try {
       Source urlSource = UrlSource(audioPath);
+      file_path = audioPath;
       await audioPlayer.play(urlSource);
     }
     catch (e) {
@@ -102,34 +108,39 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> uploadFile() async {
     try {
+      final file = File(file_path);
+      if (!file.existsSync()) {
+        print('File does not exist: $file_path');
+        return;
+      }
+
       final formattedDateTime = formatter.format(dateTimeNow);
       final path = 'files/$formattedDateTime.mp3';
-
-      final file = File(audioPath);
-
       final ref = FirebaseStorage.instance.ref().child(path);
-      await ref.putFile(file);
+      final UploadTask uploadTask = ref.putFile(file);
 
-      print("File uploaded successfully");
+      await uploadTask.whenComplete(() {
+        print("File uploaded successfully");
+      }).catchError((e) {
+        print("Error during file upload: $e");
+      });
     } catch (e) {
       print("Error during file upload: $e");
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text('녹음 기능 구현2'),
+        title: Text('녹음 기능 구현'),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            ElevatedButton(
-                onPressed: uploadFile, // 버튼 클릭 시 경로 출력
-                child: Text('firebase_storage')),
             if (isRecording)
               const Text(
                 'Recording in Progress',
@@ -151,6 +162,14 @@ class _MyHomePageState extends State<MyHomePage> {
                 onPressed: playRecording,
                 child: Text('Communicate with 아이'),
               ),
+            const SizedBox(
+              height: 25,
+            ),
+            if (!isRecording && audioPath != null)
+            ElevatedButton(
+                onPressed: uploadFile, // 버튼 클릭 시 경로 출력
+                child: Text('firebase_storage')),
+
           ],
         ),
       ),
