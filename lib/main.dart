@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:flutter/material.dart';
 import 'package:record/record.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -93,6 +94,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+/*
   Future<void> playRecording() async{
     //if (audioPath.isNotEmpty) {
     try {
@@ -104,6 +106,32 @@ class _MyHomePageState extends State<MyHomePage> {
       print('[Error] Playing Recording : $e');
     }
     //}
+  }
+*/
+
+  Future<void> playRecentRecording() async {
+    try {
+      // Firebase Storage에서 파일 목록을 가져옵니다.
+      ListResult result = await firebase_storage.FirebaseStorage.instance
+          .ref('output/')
+          .listAll();
+
+      // 파일 이름에 따라 정렬합니다 (가장 최근 파일이 마지막에 위치).
+      result.items.sort((a, b) => b.name.compareTo(a.name));
+
+      if (result.items.isNotEmpty) {
+        // 가장 최근 파일의 URL을 가져옵니다.
+        String audioUrl = await result.items.first.getDownloadURL();
+
+        // URL을 사용하여 오디오 파일을 재생합니다.
+        AudioPlayer audioPlayer = AudioPlayer();
+        await audioPlayer.play(UrlSource(audioUrl));
+      } else {
+        print('No files found in Firebase Storage.');
+      }
+    } catch (e) {
+      print('[Error] Playing Recent Recording: $e');
+    }
   }
 
   Future<void> uploadFile() async {
@@ -149,26 +177,26 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
             ElevatedButton(
-              onPressed: isRecording ? stopRecording : startRecording,
-              child: isRecording
-                  ? const Text('Send your today story')
-                  : const Text('Start to speak your today story')
+                onPressed: isRecording ? stopRecording : startRecording,
+                child: isRecording
+                    ? const Text('Send your today story')
+                    : const Text('Start to speak your today story')
             ),
             const SizedBox(
               height: 25,
             ),
             if (!isRecording && audioPath != null)
               ElevatedButton(
-                onPressed: playRecording,
+                onPressed: playRecentRecording,
                 child: Text('Communicate with 아이'),
               ),
             const SizedBox(
               height: 25,
             ),
             if (!isRecording && audioPath != null)
-            ElevatedButton(
-                onPressed: uploadFile, // 버튼 클릭 시 경로 출력
-                child: Text('firebase_storage')),
+              ElevatedButton(
+                  onPressed: uploadFile, // 버튼 클릭 시 경로 출력
+                  child: Text('firebase_storage')),
 
           ],
         ),
