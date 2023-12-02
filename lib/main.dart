@@ -80,6 +80,22 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  // Stop + upload_file + play_recent_file
+  Future<void> stopRecordUploadAndPlay() async {
+    try {
+      // 녹음 종료
+      await stopRecording();
+
+      // Firebase에 파일 업로드하고 완료될 때까지 기다림
+      await uploadFile();
+
+      // 파일 업로드 완료 후, 가장 최근 파일 재생
+      await playRecentRecording();
+    } catch (e) {
+      print('[Error] During stopRecordUploadAndPlay: $e');
+    }
+  }
+
   Future<void> stopRecording() async {
     try {
       String? path = await audioRecord.stop();
@@ -94,7 +110,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-/*
+/* [실패]
   Future<void> playRecording() async{
     //if (audioPath.isNotEmpty) {
     try {
@@ -109,6 +125,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 */
 
+
+/*
   Future<void> playRecentRecording() async {
     try {
       // Firebase Storage에서 파일 목록을 가져옵니다.
@@ -133,6 +151,37 @@ class _MyHomePageState extends State<MyHomePage> {
       print('[Error] Playing Recent Recording: $e');
     }
   }
+*/
+
+  Future<void> playRecentRecording() async {
+    const int maxAttempts = 10; // 최대 시도 횟수
+    const int delayBetweenAttempts = 5000; // 재시도 간격 (밀리초)
+
+    try {
+      for (int attempts = 0; attempts < maxAttempts; attempts++) {
+        ListResult result = await firebase_storage.FirebaseStorage.instance
+            .ref('output/')
+            .listAll();
+
+        if (result.items.isNotEmpty) {
+          result.items.sort((a, b) => b.name.compareTo(a.name));
+          String audioUrl = await result.items.first.getDownloadURL();
+
+          AudioPlayer audioPlayer = AudioPlayer();
+          await audioPlayer.play(UrlSource(audioUrl));
+          return; // 파일이 있으면 재생 후 함수 종료
+        } else {
+          // 파일이 없으면 일정 시간 대기 후 재시도
+          await Future.delayed(Duration(milliseconds: delayBetweenAttempts));
+        }
+      }
+
+      print('No files found in Firebase Storage after multiple attempts.');
+    } catch (e) {
+      print('[Error] Playing Recent Recording: $e');
+    }
+  }
+
 
   Future<void> uploadFile() async {
     try {
@@ -177,19 +226,12 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
             ElevatedButton(
-                onPressed: isRecording ? stopRecording : startRecording,
+                onPressed: isRecording ? stopRecordUploadAndPlay : startRecording,
                 child: isRecording
                     ? const Text('Send your today story')
                     : const Text('Start to speak your today story')
             ),
-            const SizedBox(
-              height: 25,
-            ),
-            if (!isRecording && audioPath != null)
-              ElevatedButton(
-                onPressed: playRecentRecording,
-                child: Text('Communicate with 아이'),
-              ),
+            /*
             const SizedBox(
               height: 25,
             ),
@@ -197,7 +239,14 @@ class _MyHomePageState extends State<MyHomePage> {
               ElevatedButton(
                   onPressed: uploadFile, // 버튼 클릭 시 경로 출력
                   child: Text('firebase_storage')),
-
+            const SizedBox(
+              height: 25,
+            ),
+            if (!isRecording && audioPath != null)
+              ElevatedButton(
+                onPressed: playRecentRecording,
+                child: Text('Communicate with 아이'),
+              ),*/
           ],
         ),
       ),
