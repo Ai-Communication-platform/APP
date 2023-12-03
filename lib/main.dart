@@ -10,6 +10,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:rive/rive.dart';
+import '';
 
 // 비동기 함수로.. => firebase 때문인 듯
 void main() async {
@@ -175,31 +176,80 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF0F0),
+      backgroundColor: Colors.white,
+      /*
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: Theme
+            .of(context)
+            .colorScheme
+            .inversePrimary,
         title: Text('녹음 기능 구현'),
-      ),
-      body: Column(
-        children: <Widget>[
-          if (isRecording)
-            const Text(
-              'Recording in Progress',
-              style: TextStyle(
-                fontSize: 20,
+      ),*/
+      body: SingleChildScrollView(
+        // SingleChildScrollView 추가
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            if (isRecording)
+              const Text(
+                'Recording in Progress',
+                style: TextStyle(
+                  fontSize: 20,
+                ),
               ),
-            ),
-          // 중간
-          Container(
-            width: 500,
-            height: 600,
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('asset/background_1.png'),
+            // 중간
+            RiveAnimation.asset('asset/shapes.riv'),
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 6),
+                child: Column(
+                  children: [
+                    Divider(
+                      // 상단에 위치하는 Divider 위젯
+                      color: const Color(0xFF7CBAF7),
+                      thickness: 3.0,
+                      height: 2, // 선과 이미지 사이의 거리를 줄임
+                    ),
+                    Row(
+                      // 이미지들을 나타내는 Row 위젯
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Image.asset(
+                          'asset/smaile 2.png',
+                          width: 75.0,
+                          height: 100.0,
+                        ),
+                        Image.asset(
+                          'asset/font 1.png',
+                          width: 150.0,
+                          height: 100.0,
+                        ),
+                      ],
+                    ),
+                    Divider(
+                      // 하단에 위치하는 Divider 위젯
+                      color: const Color(0xFF7CBAF7),
+                      thickness: 3.0,
+                      height: 18, // 선과 이미지 사이의 거리를 줄임
+                    ),
+                    // 여기에 추가적인 위젯들을 배치할 수 있습니다.
+                    Container(
+                      alignment: Alignment(-1.0, -1.0),
+                      child: Image.asset(
+                        "asset/font 2.png",
+                        width: 250,
+                        height: 53,
+                        fit: BoxFit.fill,
+                      ),
+                    ),
+                    Container(margin: EdgeInsets.symmetric(vertical: 540),
+                        child: Divider(color: const Color(0xFF7CBAF7), thickness: 3.0))
+                  ],
+                ),
               ),
-            ),
-          ),
-        ],
+            )
+          ],
+        ),
       ),
       bottomNavigationBar: Padding(
         padding: EdgeInsets.all(6),
