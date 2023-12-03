@@ -91,6 +91,9 @@ class _MyHomePageState extends State<MyHomePage> {
       // Firebase에 파일 업로드하고 완료될 때까지 기다림
       await uploadFile();
 
+      // 파일 업로드 후 15초 대기
+      await Future.delayed(Duration(seconds: 12));
+
       // 파일 업로드 완료 후, 가장 최근 파일 재생
       await playRecentRecording();
     } catch (e) {
@@ -130,7 +133,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
         if (result.items.isNotEmpty) {
           result.items.sort((a, b) => b.name.compareTo(a.name));
-          String audioUrl = await result.items.first.getDownloadURL();
+          String audioUrl = await result.items.last.getDownloadURL();
 
           // 오디오 재생을 시작하고, isPlaying을 true로 설정
           isPlaying = true;
@@ -206,7 +209,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   children: [
                     Divider(
                       // 상단에 위치하는 Divider 위젯
-                      color: const Color(0xFF7CBAF7),
+                      color: const Color(0xFFFFCD4A),
                       thickness: 3.0,
                       height: 2, // 선과 이미지 사이의 거리를 줄임
                     ),
@@ -228,7 +231,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     Divider(
                       // 하단에 위치하는 Divider 위젯
-                      color: const Color(0xFF7CBAF7),
+                      color: const Color(0xFFFFCD4A),
                       thickness: 3.0,
                       height: 18, // 선과 이미지 사이의 거리를 줄임
                     ),
@@ -243,7 +246,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                     ),
                     Container(margin: EdgeInsets.symmetric(vertical: 540),
-                        child: Divider(color: const Color(0xFF7CBAF7), thickness: 3.0))
+                        child: Divider(color: const Color(0xFFFFCD4A), thickness: 3.0))
                   ],
                 ),
               ),
