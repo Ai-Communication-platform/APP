@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
@@ -8,16 +9,17 @@ import 'package:record/record.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
-
+import 'package:rive/rive.dart';
 
 // 비동기 함수로.. => firebase 때문인 듯
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  await FirebaseAppCheck.instance.activate(webProvider: ReCaptchaV3Provider('recaptcha-v3-site-key'),);
+  await FirebaseAppCheck.instance.activate(
+    webProvider: ReCaptchaV3Provider('recaptcha-v3-site-key'),
+  );
   runApp(MyApp());
 }
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -109,7 +111,6 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-
   Future<void> playRecentRecording() async {
     const int maxAttempts = 10;
     const int delayBetweenAttempts = 5000;
@@ -148,7 +149,6 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-
   Future<void> uploadFile() async {
     try {
       final file = File(file_path);
@@ -172,54 +172,83 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFFF0F0),
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text('녹음 기능 구현'),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            if (isRecording)
-              const Text(
-                'Recording in Progress',
-                style: TextStyle(
-                  fontSize: 20,
-                ),
+      body: Column(
+        children: <Widget>[
+          if (isRecording)
+            const Text(
+              'Recording in Progress',
+              style: TextStyle(
+                fontSize: 20,
               ),
-            ElevatedButton(
-                onPressed: isRecording ? stopRecording : startRecording,
-                child: isRecording
-                    ? const Text('Send your today story')
-                    : const Text('Start to speak your today story')
             ),
-            LoadingBtn(
-              height: 50,
-              borderRadius: 8,
-              animate: true,
-              color: const Color(0xFFFF6969),
-              width: MediaQuery.of(context).size.width * 0.45,
-              child: Text("소통하기", style: TextStyle(fontFamily: 'nanum', fontSize: 22, color: Colors.white)),
-              loader: Container(
-                padding: const EdgeInsets.all(10),
-                width: 40,
-                height: 40,
-                child: const CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
+          // 중간
+          Container(
+            width: 500,
+            height: 600,
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('asset/background_1.png'),
               ),
-              onTap: ((startLoading, stopLoading, btnState) async{
-                if(btnState == ButtonState.idle && !isRecording){
-                  startLoading();
-                  await Future.delayed(const Duration(seconds: 5));
-                  await RecordUploadAndPlay();
-                  stopLoading();
-                }
-              }),
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: Padding(
+        padding: EdgeInsets.all(6),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: <Widget>[
+            Container(
+              width: 60,
+              height: 60,
+              child: FloatingActionButton(
+                  backgroundColor: Colors.white,
+                  onPressed: isRecording ? stopRecording : startRecording,
+                  child: isRecording
+                      ? Icon(
+                          Icons.mic_off,
+                          color: const Color(0xFFFF6969),
+                        )
+                      : Icon(
+                          Icons.mic,
+                          color: const Color(0xFFFF6969),
+                        )),
+            ),
+            SizedBox(width: 10), // 버튼 사이의 간격
+            Expanded(
+              child: LoadingBtn(
+                height: 50,
+                borderRadius: 8,
+                animate: true,
+                color: const Color(0xFFFF6969),
+                width: MediaQuery.of(context).size.width * 0.45,
+                child: Text("소통하기",
+                    style: TextStyle(fontSize: 22, color: Colors.white)),
+                loader: Container(
+                  padding: const EdgeInsets.all(10),
+                  width: 40,
+                  height: 40,
+                  child: const CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                ),
+                onTap: ((startLoading, stopLoading, btnState) async {
+                  if (btnState == ButtonState.idle && !isRecording) {
+                    startLoading();
+                    await Future.delayed(const Duration(seconds: 5));
+                    await RecordUploadAndPlay();
+                    stopLoading();
+                  }
+                }),
+              ),
             ),
           ],
         ),
