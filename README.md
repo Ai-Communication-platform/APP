@@ -1,4 +1,4 @@
-# APP (1. Version)
+# APP (Version_1)
 ---
 
 - [Completed] Implementation of recording function
