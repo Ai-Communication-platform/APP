@@ -5,7 +5,7 @@
 - Used flutter and firebase
 - To use the code in the repository, you must see and set the settings below
 - Please refer to the link below for the final app screen <br>
-&nbsp; → Link: https://github.com/Ai-Communication-platform [Check 04. Demonstration Video and Presentation Materials]
+&nbsp; → Link: https://github.com/Ai-Communication-platform [Check 04.]
 ---
 <br>
 <br>
